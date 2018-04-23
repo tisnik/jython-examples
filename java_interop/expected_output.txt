@@ -1,0 +1,16 @@
+Date test
+Fri Apr 13 16:47:00 CEST 2018
+118
+
+String test
+42
+<type 'java.lang.String'>
+42
+<type 'unicode'>
+
+Big integer test
+2
+<type 'java.math.BigInteger'>
+<type 'long'>
+<type 'type'>
+
