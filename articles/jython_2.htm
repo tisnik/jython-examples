@@ -1,0 +1,1134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+<title>Použití standardní knihovny Javy v Jythonu</title>
+<meta name="Author" content="Pavel Tisnovsky" />
+<meta name="Generator" content="vim" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<style type="text/css">
+         body {color:#000000; background:#ffffff;}
+         h1  {font-family: arial, helvetica, sans-serif; color:#ffffff; background-color:#c00000; text-align:center; padding-left:1em}
+         h2  {font-family: arial, helvetica, sans-serif; color:#ffffff; background-color:#0000c0; padding-left:1em; text-align:left}
+         h3  {font-family: arial, helvetica, sans-serif; color:#000000; background-color:#c0c0c0; padding-left:1em; text-align:left}
+         h4  {font-family: arial, helvetica, sans-serif; color:#000000; background-color:#e0e0e0; padding-left:1em; text-align:left}
+         a   {font-family: arial, helvetica, sans-serif;}
+         li  {font-family: arial, helvetica, sans-serif; color:#000000; text-align:justify; width:450px;}
+         ol  {font-family: arial, helvetica, sans-serif; color:#000000; text-align:justify; width:450px;}
+         ul  {font-family: arial, helvetica, sans-serif; color:#000000; text-align:justify; width:450px;}
+         p   {font-family: arial, helvetica, sans-serif; color:#000000; text-align:justify;}
+         pre {background:#e0e0e0}
+</style>
+</head>
+
+<body>
+
+<h1>Použití standardní knihovny Javy v Jythonu</h1>
+
+<h3>Pavel Tišnovský</h3>
+
+<p></p>
+
+<h1>Úvodník</h1>
+
+<p>Ve druhém článku o zajímavém a potenciálně užitečném projektu Jython si ukážeme, jakým způsobem je možné v&nbsp;Jythonu používat rozhraní a třídy naimportované ze standardní knihovny jazyka Java. Uvidíme, že &ndash; což možná zní poněkud paradoxně &ndash; může být použití javovských knihoven snazší a jednodušší v&nbsp;Jythonu než v&nbsp;samotném programovacím jazyku Java.</p><!--more-->
+
+
+
+<h2>Obsah</h2>
+
+<p><a href="#k01">1. Použití standardní knihovny Javy v&nbsp;Jythonu</a></p>
+<p><a href="#k02">2. Základní způsoby využití tříd a rozhraní naprogramovaných v&nbsp;Javě z&nbsp;Jythonu</a></p>
+<p><a href="#k03">3. Zjednodušené volání getterů a setterů</a></p>
+<p><a href="#k04">4. Gettery vracející pravdivostní hodnoty <strong>true</strong>/<strong>false</strong></a></p>
+<p><a href="#k05">5. Zkrácený zápis setterů a getterů &ndash; praktičtější příklady</a></p>
+<p><a href="#k06">6. Komplikace v&nbsp;případě, že jméno getteru/setteru koliduje se jménem atributu</a></p>
+<p><a href="#k07">7. Další série benchmarků pro porovnání rychlosti Jythonu, Pythonu 2.x a Pythonu 3.x</a></p>
+<p><a href="#k08">8. Výsledky benchmarku z&nbsp;předchozího článku</a></p>
+<p><a href="#k09">9. Třetí benchmark &ndash; intenzivní konkatenace (spojování) řetězců</a></p>
+<p><a href="#k10">10. Skripty pro spuštění benchmarku se zvoleným interpretrem a parametry</a></p>
+<p><a href="#k11">11. Výsledky běhu třetího benchmarku</a></p>
+<p><a href="#k12">12. &bdquo;Skryté&ldquo; vytváření objektů v&nbsp;benchmarku s&nbsp;řetězci</a></p>
+<p><a href="#k13">13. Čtvrtý benchmark &ndash; Eratosthenovo síto</a></p>
+<p><a href="#k14">14. Skripty pro spuštění benchmarku se zvoleným interpretrem a parametry</a></p>
+<p><a href="#k15">15. Výsledky běhu čtvrtého benchmarku</a></p>
+<p><a href="#k16">16. Pád benchmarku v&nbsp;případě Jythonu</a></p>
+<p><a href="#k17">17. Jednoduchá GUI aplikace naprogramovaná v&nbsp;Jythonu</a></p>
+<p><a href="#k18">18. Nepatrně složitější příklad &ndash; dvě tlačítka na GUI</a></p>
+<p><a href="#k19">19. Repositář s&nbsp;demonstračními příklady</a></p>
+<p><a href="#k20">20. Odkazy na Internetu</a></p>
+
+
+
+<p><a name="k01"></a></p>
+<h2 id="k01">1. Použití standardní knihovny Javy v&nbsp;Jythonu</h2>
+
+<p><a href="https://mojefedora.cz/jython-aneb-ponekud-opomijeny-programovaci-jazyk-pro-virtualni-stroj-javy/">V&nbsp;prvním článku o Jythonu</a> jsme se seznámili s&nbsp;programovacími jazyky vytvořenými pro běh (spouštění) v&nbsp;nich vytvořených aplikací nad virtuálním strojem jazyka Javy (<i>JVM &ndash; Java Virtual Machine</i>). Připomeňme si, že se jedná například o jazyky <a href="https://mojefedora.cz/jython-aneb-ponekud-opomijeny-programovaci-jazyk-pro-virtualni-stroj-javy/#k03">Scala</a>, <a href="https://mojefedora.cz/jython-aneb-ponekud-opomijeny-programovaci-jazyk-pro-virtualni-stroj-javy/#k04">Clojure</a>, <a href="https://mojefedora.cz/jython-aneb-ponekud-opomijeny-programovaci-jazyk-pro-virtualni-stroj-javy/#k05">Groovy</a>, Ruby (<a href="https://mojefedora.cz/jython-aneb-ponekud-opomijeny-programovaci-jazyk-pro-virtualni-stroj-javy/#k06">JRuby</a>), Python (<a href="https://mojefedora.cz/jython-aneb-ponekud-opomijeny-programovaci-jazyk-pro-virtualni-stroj-javy/#k06">Jython</a>) a v&nbsp;neposlední řadě taktéž <a href="https://mojefedora.cz/jython-aneb-ponekud-opomijeny-programovaci-jazyk-pro-virtualni-stroj-javy/#k06">JavaScript</a> (implementované ve dvou projektech Rhino a Nashorn) i relativně nový jazyk <a href="https://mojefedora.cz/jython-aneb-ponekud-opomijeny-programovaci-jazyk-pro-virtualni-stroj-javy/#k07">Kotlin</a>. Taktéž jsme si ukázali postup při instalaci Jythonu, spuštění interaktivní smyčky REPL, popsali jsme si základní knihovny dodávané společně s&nbsp;Jythonem a na závěr byly uvedeny dva benchmarky měřící rychlost provádění výpočtů s&nbsp;datovými typy <i>float</i> a <i>complex</i>.</p>
+
+<p>Jazyky pro JVM zmíněné minule:</p>
+
+<table>
+<tr><th>Jazyk pro JVM</th><th>Stručný popis</th><th>Odkaz</th></tr>
+<tr><td>Java   </td><td>primární jazyk pro JVM, bajtkód odpovídá právě Javě</td><td><a href="https://www.oracle.com/java/index.html">https://www.oracle.com/java/index.html</a></td></tr>
+<tr><td>Clojure</td><td>moderní dialekt programovacího jazyka Lisp</td><td><a href="https://clojure.org/">https://clojure.org/</a></td></tr>
+<tr><td>Groovy </td><td>dynamicky typovaný jazyk pro JVM</td><td><a href="http://groovy-lang.org/">http://groovy-lang.org/</a></td></tr>
+<tr><td>Rhino  </td><td>jedna z&nbsp;implementací JavaScriptu</td><td><a href="https://developer.mozilla.org/en-US/docs/Mozilla/Projects/Rhino">https://developer.mozilla.org/en-US/docs/Mozilla/Projects/Rhino</a></td></tr>
+<tr><td>Nashorn</td><td>alternativní implementace JavaScriptu</td><td><a href="https://blogs.oracle.com/nashorn/">https://blogs.oracle.com/nashorn/</a></td></tr>
+<tr><td>JRuby  </td><td>portace jazyka Ruby na JVM</td><td><a href="http://jruby.org/">http://jruby.org/</a></td></tr>
+<tr><td>Jython </td><td>portace jazyka Python na JVM</td><td><a href="http://www.jython.org/">http://www.jython.org/</a></td></tr>
+<tr><td>Kotlin </td><td>moderní staticky typovaný jazyk</td><td><a href="http://kotlinlang.org/">http://kotlinlang.org/</a></td></tr>
+<tr><td>Scala  </td><td>další moderní jazyk pro JVM</td><td><a href="https://www.scala-lang.org/">https://www.scala-lang.org/</a></td></tr>
+</table>
+
+<a href="https://mojefedora.cz/wp-content/uploads/2018/04/01_jython.png"><img class="alignnone size-thumbnail wp-image-9925" src="https://mojefedora.cz/wp-content/uploads/2018/04/01_jython-394x254.png" alt="" width="394" height="254" /></a>
+<p><i>Obrázek 1: Logo programovacího jazyka Jython, jehož popisu je dnešní článek věnován.</i></p>
+
+<p>Dnes si řekneme, jakým způsobem je možné ve skriptech psaných v&nbsp;Jythonu používat rozhraní (<i>interface</i>) a třídy (<i>class</i>) nabízené <a href="https://en.wikipedia.org/wiki/Java_Platform,_Standard_Edition#General_purpose_packages">základní knihovnou programovacího jazyka Java</a>, která je dnes již <a href="https://docs.oracle.com/javase/9/docs/api/overview-summary.html">velmi rozsáhlá</a> (odkaz vede na knihovnu určenou pro JDK verze 1.9, ovšem podobně rozsáhlá byla již pro verze 1.5-1.8). Zajímavý a na první pohled možná poněkud paradoxní je fakt, že použití standardní knihovny Javy (a vlastně i mnoha dalších javovských knihoven) je v&nbsp;případě volání těchto knihoven z&nbsp;Jythonu mnohem jednodušší, než je tomu ve vlastním jazyku Java. To ostatně uvidíme i na dále popsaných demonstračních příkladech, jejichž verze psané v&nbsp;Jythonu jsou v&nbsp;naprosté většině případů kratší a přehlednější, než varianty vyvinuté přímo v&nbsp;programovacím jazyku Java. Jython je v&nbsp;tomto ohledu porovnatelný především s&nbsp;programovacím jazykem Groovy a v&nbsp;obecnějším pohledu i se Scalou a Kotlinem (i když typový systém těchto jazyků je odlišný).</p>
+
+
+
+<p><a name="k02"></a></p>
+<h2 id="k02">2. Základní způsoby využití tříd a rozhraní naprogramovaných v&nbsp;Javě z&nbsp;Jythonu</h2>
+
+<p>Již <a href="https://mojefedora.cz/jython-aneb-ponekud-opomijeny-programovaci-jazyk-pro-virtualni-stroj-javy/">v&nbsp;předchozím článku</a> jsme se seznámili se základními způsoby komunikace mezi skripty psanými v&nbsp;programovacím jazyku Jython a třídami popř.&nbsp;rozhraními vytvořenými v&nbsp;Javě (včetně již zmíněné a rozsáhlé standardní knihovny Javy). Připomeňme si ve stručnosti, jak vlastně vypadá konstrukce objektu daného typu (třídy). V&nbsp;programovacím jazyku Java vypadá programový kód pro vytvoření nového objektu přibližně takto. Uvádíme si příklad na všeobecně známé implementaci seznamů představované třídou <strong>ArrayList</strong> implementující rozhraní <strong>List</strong>:</p>
+
+<pre><code>
+List l = new ArrayList();
+</code></pre>
+
+<p>Naproti tomu v&nbsp;případě Jythonu je situace poněkud jednodušší a především přehlednější, a to díky jeho dynamickému typovému systému. V&nbsp;praxi to znamená, že se nikde neuvádí typ proměnné, do které se přiřazuje právě vytvořená instance třídy. Navíc není nutné explicitně zapisovat operátor <strong>new</strong>, protože volání konstruktoru vypadá v&nbsp;Pythonu odlišně &ndash; zapisuje se podobně jako volání funkce, ovšem namísto jména funkce se použije jméno třídy (popř.&nbsp;rozhraní):</p>
+
+<pre><code>
+l = ArrayList()
+</code></pre>
+
+<p>Poznámka: třídu <strong>ArrayList</strong> je samozřejmě nutné nejdříve do skriptu naimportovat, což se provádí příkazem <strong>import třída</strong> nebo jeho variantou <strong>from balíček import třída</strong>:</p>
+
+<pre><code>
+from java.util import ArrayList
+</code></pre>
+
+<p>Typ objektu, resp.&nbsp;přesněji řečeno typ hodnoty, je uložen společně s&nbsp;objektem/hodnotou referencovanou v&nbsp;proměnné <strong>l</strong>. Můžeme se o tom snadno přesvědčit (například přímo v&nbsp;interaktivní smyčce Jythonu):</p>
+
+<pre>
+$ <strong>type(l)</strong>
+&nbsp;
+&lt;type 'java.util.ArrayList'&gt;
+</pre>
+
+<p>Ve chvíli, kdy je instance třídy (tj.&nbsp;objekt) vytvořen, můžeme volat jeho metody popř.&nbsp;přistupovat k&nbsp;jeho atributům. Opět si to ukažme na velmi jednoduchém příkladu, v&nbsp;němž budeme volat dvě metody objektu typu <strong>ArrayList</strong>:</p>
+
+<pre>
+&gt;&gt;&gt; <strong>l.append(1)</strong>
+&gt;&gt;&gt; <strong>l.size()</strong>
+1
+</pre>
+
+
+
+<p><a name="k03"></a></p>
+<h2 id="k03">3. Zjednodušené volání getterů a setterů</h2>
+
+<p>Možnosti programovacího jazyka Jython jdou ovšem ještě dále, než je pouhá konstrukce objektů, volání jejich metod a přístup k&nbsp;atributům objektů. Pokud totiž třída obsahuje gettery a settery, tj.&nbsp;metody určené pro zjištění stavu popř.&nbsp;pro změnu stavu objektu, je možné gettery a settery volat nepřímo &ndash; přístupem (čtením či zápisem) do &bdquo;kvaziatributu&ldquo;, jehož jméno je odvozeno ze jména příslušného getteru a setteru. Ukažme si to opět na příkladu. Mějme třídu nazvanou <strong>CLS</strong> s&nbsp;getterem pojmenovaným <strong>getValue</strong> a setterem pojmenovaným <strong>setValue</strong> (pojmenování musíme zachovat, protože v&nbsp;Javě se gettery a settery identifikují právě svým jménem). Zdrojový kód této třídy naleznete na adrese <a href="https://github.com/tisnik/jython-examples/blob/master/CLS.java">https://github.com/tisnik/jython-examples/blob/master/CLS.java</a>:</p>
+
+<pre><code>
+public class CLS {
+    int v;
+
+    public void setValue(int value) {
+        this.v = value;
+    }
+
+    public int getValue() {
+        return this.v;
+    }
+}
+</code></pre>
+
+<p>Ve chvíli, kdy si v&nbsp;Jythonu vytvoříme instanci této třídy, například do proměnné <strong>c</strong>, můžeme samozřejmě přímo volat getter a setter, a to prakticky stejně, jako v&nbsp;samotné Javě. Vše si ověříme v&nbsp;interaktivní smyčce REPL:</p>
+
+<pre>
+$ <strong>java -jar jython-standalone-2.7.0.jar </strong>
+Jython 2.7.0 (default:9987c746f838, Apr 29 2015, 02:25:11) 
+[OpenJDK 64-Bit Server VM (Oracle Corporation)] on java1.7.0_79
+Type "help", "copyright", "credits" or "license" for more information.
+&nbsp;
+&gt;&gt;&gt; <strong>import CLS</strong>
+&gt;&gt;&gt; <strong>c = CLS()</strong>
+&gt;&gt;&gt; <strong>c.setValue(42)</strong>
+&gt;&gt;&gt; <strong>c.getValue()</strong>
+42
+</pre>
+
+<p>Popř.&nbsp;můžeme &ndash; což již v&nbsp;Javě nelze &ndash; použít zkráceného zápisu, v&nbsp;němž se namísto explicitního volání getterů a setterů čte či zapisuje kvaziatribut, jehož jméno je odvozeno od názvů getterů a setterů. Opět si ukažme příklad:</p>
+
+<pre>
+&gt;&gt;&gt; <strong>c.value</strong>
+42
+&gt;&gt;&gt; <strong>c.value=6502</strong>
+&gt;&gt;&gt; <strong>c.value</strong>
+6502
+</pre>
+
+<p>Podobně je možné při práci s&nbsp;instancí třídy <strong>File</strong> použít setter nazvaný <strong>setExecutable()</strong>, který nastavuje bit &bdquo;executable&ldquo;:</p>
+
+<pre>
+&gt;&gt;&gt; <strong>f2 = File("test")</strong>
+&nbsp;
+&gt;&gt;&gt; <strong>f2.createNewFile()</strong>
+True
+&nbsp;
+&gt;&gt;&gt; <strong>f2.setExecutable(True)</strong>
+True
+</pre>
+
+<p>Namísto setteru ovšem můžeme měnit hodnotu pseudoatributu <strong>executable</strong>, což je kratší a čitelnější:</p>
+
+<pre>
+&gt;&gt;&gt; <strong>f3 = File("test2")</strong>
+&nbsp;
+&gt;&gt;&gt; <strong>f3.createNewFile()</strong>
+True
+&nbsp;
+&gt;&gt;&gt; <strong>f3.executable=True</strong>
+True
+</pre>
+
+<p>Výsledek si můžete ověřit přímo v&nbsp;souborovém systému.</p>
+
+
+
+<p><a name="k04"></a></p>
+<h2 id="k04">4. Gettery vracející pravdivostní hodnoty <strong>true</strong>/<strong>false</strong></h2>
+
+<p>Některé gettery, které vracejí pravdivostní hodnoty typu <strong>Boolean</strong> (objektový typ) nebo <strong>boolean</strong> (primitivní typ), většinou nebývají pojmenovány stylem <strong>getJménoAtributu</strong> ale spíše <strong>isJménoAtributu</strong>. V&nbsp;programovacím jazyku Jython však i s&nbsp;těmito gettery můžeme pracovat pořád stejně, tj.&nbsp;můžeme je buď volat explicitně jako jakoukoli jinou metodu nebo přečíst jejich hodnotu s&nbsp;využitím operátoru přiřazení.</p>
+
+<p>Opět si tuto vlastnost ukážeme na jednoduchém demonstračním příkladu. Vytvoříme si instanci třídy <strong>File</strong>:</p>
+
+<pre>
+&gt;&gt;&gt; <strong>from java.io import File</strong>
+&nbsp;
+&gt;&gt;&gt; <strong>f1=File(".")</strong>
+</pre>
+
+<p>Explicitní přístup ke getteru zjišťujícího informace o tom, zda instance třídy <strong>File</strong> reprezentuje soubor popř.&nbsp;zda reprezentuje adresář, vypadá naprosto stejně jako v&nbsp;Javě:</p>
+
+<pre>
+&gt;&gt;&gt; <strong>f1.isFile()</strong>
+False
+&nbsp;
+&gt;&gt;&gt; <strong>f1.isDirectory()</strong>
+True
+</pre>
+
+<p>Alternativně ovšem můžeme ke stejným getterům přistupovat tak, jakoby se jednalo o běžné (čitelné) atributy:</p>
+
+<pre>
+&gt;&gt;&gt; <strong>f1.file</strong>
+False
+&nbsp;
+&gt;&gt;&gt; <strong>f1.directory</strong>
+True
+</pre>
+
+<p>Ve skutečnosti se samozřejmě o běžné atributy nejedná, o čemž se můžeme snadno přesvědčit pokusem o zápis do nich:</p>
+
+<pre>
+&gt;&gt;&gt; <strong>f1.file=False</strong>
+&nbsp;
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+AttributeError: read-only attr: file
+</pre>
+
+
+
+<p><a name="k05"></a></p>
+<h2 id="k05">5. Zkrácený zápis setterů a getterů &ndash; praktičtější příklady</h2>
+
+<p>Samozřejmě nezapomeneme ani na praktičtější příklady, které souvisí s&nbsp;použitím setterů a getterů. Nejprve si vyzkoušíme použití getterů deklarovaných ve třídě <a href="https://docs.oracle.com/javase/7/docs/api/java/awt/Color.html">java.awt.Color</a>, která nese informace o barvě reprezentované v&nbsp;barvovém prostoru RGB. Nejprve vytvoříme instanci této třídy:</p>
+
+<pre><code>
+from java.awt import Color
+
+c = Color(1, 0, 0)
+</code></pre>
+
+<p>A dále můžeme volat gettery objektu:</p>
+
+<pre><code>
+print(c.getRed())
+print(c.getGreen())
+print(c.getBlue())
+print(c.getAlpha())
+</code></pre>
+
+<p>Popř.&nbsp;použít zkrácený zápis:</p>
+
+<pre><code>
+print(c.red)
+print(c.green)
+print(c.blue)
+print(c.alpha)
+</code></pre>
+
+<p>Podívejme se na celý výpis tohoto demonstračního příkladu:</p>
+
+<pre><code>
+from java.awt import Color
+
+print("red")
+
+c = Color(1, 0, 0)
+
+print(c.getRed())
+print(c.getGreen())
+print(c.getBlue())
+print(c.getAlpha())
+
+print("")
+
+print(c.red)
+print(c.green)
+print(c.blue)
+print(c.alpha)
+
+
+print("\n\nyellow")
+
+c2 = Color.YELLOW
+
+print(c2.red)
+print(c2.green)
+print(c2.blue)
+print(c2.alpha)
+</code></pre>
+
+<p>Po spuštění by se na standardní výstup měly vypsat tyto údaje:</p>
+
+<pre>
+red
+1
+0
+0
+255
+
+1
+0
+0
+255
+
+
+yellow
+255
+255
+0
+255
+</pre>
+
+<p>Druhý příklad je kratší a ukazuje dvě možnosti, jak napsat test, jestli je nějaká kolekce prázdná či nikoli:</p>
+
+<pre>
+from java.util import ArrayList
+
+a = ArrayList()
+
+print(a.isEmpty())
+print(a.empty)
+</pre>
+
+
+
+<p><a name="k06"></a></p>
+<h2 id="k06">6. Komplikace v&nbsp;případě, že jméno getteru/setteru koliduje se jménem atributu</h2>
+
+<p>Ovšem ne vždy je situace se settery a ještě více s&nbsp;gettery tak snadná jako tomu bylo v&nbsp;předchozích demonstračních příkladech. Může totiž dojít k&nbsp;situaci, kdy nějaká třída obsahuje getter/setter a současně i viditelný atribut (nebo metodu!) stejného jména. V&nbsp;takovém případě dojde k&nbsp;problémům (kvůli nejednoznačnosti), které si můžeme ukázat na dalším demonstračním příkladu:</p>
+
+<pre><code>
+from java.lang import StringBuffer
+
+s = StringBuffer("Hello world!")
+
+print(s.length())
+print(s)
+print("")
+
+s.setLength(11)
+
+print(s.length())
+print(s)
+print("")
+
+s.length = 5
+
+print(s.length())
+print(s)
+print("")
+</code></pre>
+
+<p>Výsledek po spuštění:</p>
+
+<pre>
+$ <strong>java -jar jython-standalone-2.7.0.jar set_length.py</strong>
+
+12
+Hello world!
+
+11
+Hello world
+
+Traceback (most recent call last):
+  File "set_length.py", line 15, in &lt;module&gt;
+    s.length = 5
+TypeError: readonly attribute
+</pre>
+
+<p>Proč tomu tak je? Problém spočívá v&nbsp;tom, že třída <a href="https://docs.oracle.com/javase/8/docs/api/index.html?java/lang/StringBuffer.html">StringBuffer</a> obsahuje metody <strong>setLength()</strong> a <strong>length()</strong>, což do jisté míry porušuje konvence java beans. Proto je přiřazení <strong>s.length = 5</strong> nejednoznačné a je nutné použít explicitní volání setteru.</p>
+
+
+
+<p><a name="k07"></a></p>
+<h2 id="k07">7. Další série benchmarků pro porovnání rychlosti Jythonu, Pythonu 2.x a Pythonu 3.x</h2>
+
+<p>Ve druhé části dnešního článku si opět ukážeme několik benchmarků, protože téma efektivity či (nutno přiznat) většinou spíše neefektivity Jythonu v&nbsp;porovnání s&nbsp;dalšími programovacími jazyky, resp.&nbsp;přesněji řečeno s&nbsp;dalšími interpretry Pythonu, se neustále diskutuje a rychlost popř.&nbsp;pomalost Jythonu může vést k&nbsp;tomu, že se tento interpret nebude moci pro konkrétní typ aplikace použít (pomalost Jythonu je jen jednou z&nbsp;nevýhod tohoto jazyka; další nevýhodou je, že Jython je založený na Pythonu 2 a nikoli Pythonu 3). Je tedy vhodné vědět již před zahájením práce na nové aplikaci, jestli bude Jython přínosem či zda naopak bude aplikace nepřiměřeně pomalá nebo náročná na systémové prostředky. Nejprve si připomeneme, k&nbsp;jakým výsledkům jsme došli minule a posléze si ukážeme dva benchmarky zaměřené na práci s&nbsp;řetězci a na použití generátorů a zpracování seznamů.</p>
+
+
+
+<p><a name="k08"></a></p>
+<h2 id="k08">8. Výsledky benchmarku z&nbsp;předchozího článku</h2>
+
+<p>Jen v&nbsp;rychlosti si připomeňme, že <a href="https://mojefedora.cz/jython-aneb-ponekud-opomijeny-programovaci-jazyk-pro-virtualni-stroj-javy/">minule</a> jsme si ukázali dva benchmarky, které byly zaměřeny především na rychlost výpočtů s&nbsp;hodnotami typu <i>float</i> a <i>complex</i>. Výsledky prvního benchmarku (<a href="https://github.com/tisnik/jython-examples/tree/master/benchmark1">výpočtu Mandelbrotovy množiny s&nbsp;uložením výsledného rastrového obrázku do souboru typu PPM</a>) vypadají následovně. Měření samozřejmě probíhalo na totožném počítači:</p>
+
+<table style="text-align:right">
+<tr><th>#</th><th>x-res</th><th>y-res</th><th>Jython (s)</th><th>Python 2 (s)</th><th>Python 3 (s)</th></tr>
+<tr><td>1</td><td>16</td><td>16</td><td>1.79</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>2</td><td>24</td><td>24</td><td>1.79</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>3</td><td>32</td><td>32</td><td>1.84</td><td>0.02</td><td>0.02</td></tr>
+<tr><td>4</td><td>48</td><td>48</td><td>2.11</td><td>0.03</td><td>0.03</td></tr>
+<tr><td>5</td><td>64</td><td>64</td><td>2.01</td><td>0.04</td><td>0.05</td></tr>
+<tr><td>6</td><td>96</td><td>96</td><td>2.16</td><td>0.08</td><td>0.09</td></tr>
+<tr><td>7</td><td>128</td><td>128</td><td>2.24</td><td>0.15</td><td>0.15</td></tr>
+<tr><td>8</td><td>192</td><td>192</td><td>2.43</td><td>0.32</td><td>0.33</td></tr>
+<tr><td>9</td><td>256</td><td>256</td><td>2.81</td><td>0.57</td><td>0.58</td></tr>
+<tr><td>10</td><td>384</td><td>384</td><td>3.87</td><td>1.25</td><td>1.29</td></tr>
+<tr><td>11</td><td>512</td><td>512</td><td>5.05</td><td>2.27</td><td>2.28</td></tr>
+<tr><td>12</td><td>768</td><td>768</td><td>8.61</td><td>5.07</td><td>5.21</td></tr>
+<tr><td>13</td><td>1024</td><td>1024</td><td>13.22</td><td>9.00</td><td>9.10</td></tr>
+<tr><td>14</td><td>1536</td><td>1536</td><td>28.15</td><td>20.73</td><td>21.24</td></tr>
+<tr><td>15</td><td>2048</td><td>2048</td><td>50.03</td><td>36.11</td><td>38.24</td></tr>
+<tr><td>16</td><td>3072</td><td>3072</td><td>100.78</td><td>81.93</td><td>84.02</td></tr>
+<tr><td>17</td><td>4096</td><td>4096</td><td>179.21</td><td>144.45</td><td>148.44</td></tr>
+</table>
+
+<a href="https://mojefedora.cz/wp-content/uploads/2018/04/08_benchmark1.png"><img class="alignnone size-thumbnail wp-image-9932" src="https://mojefedora.cz/wp-content/uploads/2018/04/08_benchmark1-292x254.png" alt="" width="292" height="254" /></a>
+<p><i>Obrázek 1: Výsledky prvního benchmarku prezentovaného v&nbsp;předchozím článku (výpočet Mandelbrotovy množiny) vynesené do grafu.</i></p>
+
+<p>Z&nbsp;výsledků <a href="https://github.com/tisnik/jython-examples/tree/master/benchmark2">druhého benchmarku</a>, který taktéž provádí výpočet Mandelbrotovy množiny, ovšem s&nbsp;datovým typem <i>complex</i> (ten v&nbsp;Javě jako primitivní datový typ neexistuje), je patrné, že je Jython při práci s&nbsp;komplexními čísly <strong>výrazně</strong> pomalejší než nativní CPython 2.x i CPython 3.x:</p>
+
+<table style="text-align:right">
+<tr><th>#</th><th>x-res</th><th>y-res</th><th>Jython (s)</th><th>Python 2 (s)</th><th>Python 3 (s)</th></tr>
+<tr><td>1 </td><td>16</td><td>16</td><td>1.77</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>2 </td><td>24</td><td>24</td><td>1.99</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>3 </td><td>32</td><td>32</td><td>1.80</td><td>0.02</td><td>0.03</td></tr>
+<tr><td>4 </td><td>48</td><td>48</td><td>1.90</td><td>0.03</td><td>0.04</td></tr>
+<tr><td>5 </td><td>64</td><td>64</td><td>1.99</td><td>0.04</td><td>0.06</td></tr>
+<tr><td>6 </td><td>96</td><td>96</td><td>2.20</td><td>0.08</td><td>0.11</td></tr>
+<tr><td>7 </td><td>128</td><td>128</td><td>2.70</td><td>0.14</td><td>0.18</td></tr>
+<tr><td>8 </td><td>192</td><td>192</td><td>3.15</td><td>0.32</td><td>0.43</td></tr>
+<tr><td>9 </td><td>256</td><td>256</td><td>4.13</td><td>0.56</td><td>0.77</td></tr>
+<tr><td>10</td><td>384</td><td>384</td><td>6.61</td><td>1.25</td><td>1.60</td></tr>
+<tr><td>11</td><td>512</td><td>512</td><td>10.10</td><td>2.22</td><td>2.71</td></tr>
+<tr><td>12</td><td>768</td><td>768</td><td>20.59</td><td>5.12</td><td>6.37</td></tr>
+<tr><td>13</td><td>1024</td><td>1024</td><td>34.45</td><td>9.09</td><td>10.78</td></tr>
+<tr><td>14</td><td>1536</td><td>1536</td><td>77.73</td><td>20.33</td><td>24.25</td></tr>
+<tr><td>15</td><td>2048</td><td>2048</td><td>134.13</td><td>35.95</td><td>43.61</td></tr>
+<tr><td>16</td><td>3072</td><td>3072</td><td>294.04</td><td>81.64</td><td>99.77</td></tr>
+<tr><td>17</td><td>4096</td><td>4096</td><td>523.57</td><td>148.13</td><td>176.97</td></tr>
+</table>
+
+<a href="https://mojefedora.cz/wp-content/uploads/2018/04/09_benchmark2.png"><img class="alignnone size-thumbnail wp-image-9933" src="https://mojefedora.cz/wp-content/uploads/2018/04/09_benchmark2-333x254.png" alt="" width="333" height="254" /></a>
+<p><i>Obrázek 2: Výsledky druhého benchmarku (výpočet Mandelbrotovy množiny s&nbsp;použitím datového typu complex) vynesené do grafu.</i></p>
+
+<p>První poučení tedy zní &ndash; pokud použijeme Jython, je vhodné si dát pozor na to, jak jsou zpracovávány hodnoty typu <i>complex</i> a zda se nebude jednat o úzké hrdlo programu.</p>
+
+
+
+<p><a name="k09"></a></p>
+<h2 id="k09">9. Třetí benchmark &ndash; intenzivní konkatenace (spojování) řetězců</h2>
+
+<p>Ve skutečnosti však mnoho v&nbsp;současnosti provozovaných aplikací neprovádí intenzivní výpočty s&nbsp;numerickými hodnotami, ale většina strojového času se stráví prováděním zcela odlišných operací. Typicky se zpracovávají řetězce popř.&nbsp;se intenzivně pracuje s&nbsp;kolekcemi (v&nbsp;Pythonu typicky se seznamy, slovníky a množinami). Nesmíme zapomenout ani na serializaci a deserializaci dat (JSON, XML) tak typické pro webové služby, aplikace s&nbsp;grafickým uživatelským rozhraním či na přístup k&nbsp;databázím. Pojďme si tedy ukázat další dva odlišně pojaté benchmarky. Ve skutečnosti se jedná o takzvané &bdquo;mikrobenchmarky&ldquo; zaměřené pouze na jedinou operaci, což je samozřejmě odlišné od reálných aplikací, ovšem pro základní porovnání mohou být i mikrobenchmarky použitelné (a to zejména ve chvíli, kdy naměřené hodnoty budou výrazně odlišné).</p>
+
+<p>V&nbsp;pořadí již třetí benchmark je po implementační stránce skutečně velmi jednoduchý. Je v&nbsp;něm totiž deklarována funkce, které se předá celé kladné číslo <strong>n</strong> a výsledkem je řetězec obsahující znaky &bdquo;0 1 2 ... n&ldquo;. Tento benchmark tedy &ndash; alespoň teoreticky &ndash; zkoumá rychlost provádění tří operací:</p>
+
+<ol>
+<li>Převod celého čísla na řetězec (provedeno celkem n-krát)</li>
+<li>Spojení (konkatenace) dvou řetězců (s&nbsp;kopií znaků druhého řetězce do řetězce prvního, opět provedeno n-krát)</li>
+<li>Činnost automatického správce paměti (<i>garbage collector</i>)</li>
+</ol>
+
+<p>Pro větší hodnoty <strong>n</strong> bude s&nbsp;velkou pravděpodobností hrát větší roli rychlost konkatenace řetězců, takže si počkejme na výsledky, zda toto očekávání potvrdí.</p>
+
+<p>Následuje výpis <a href="https://github.com/tisnik/jython-examples/blob/master/benchmark_string_concat/string_concat.py">celého zdrojového kódu</a> tohoto mikrobenchmarku. Testovanou funkcí bude <strong>perform_benchmark()</strong>:</p>
+
+<pre><code>
+#!/usr/bin/env python
+# vim: set fileencoding=utf-8
+
+from sys import argv, exit
+
+
+def perform_benchmark(repeat_count):
+    s = ""
+    for i in range(1, 1 + repeat_count):
+        s += str(i) + " "
+
+    print(len(s))
+    return s
+
+
+if __name__ == "__main__":
+    if len(argv) &lt; 2:
+        print("usage: python string_concat repeat_count")
+        exit(1)
+
+    repeat_count = int(argv[1])
+    perform_benchmark(repeat_count)
+</code></pre>
+
+
+
+<p><a name="k10"></a></p>
+<h2 id="k10">10. Skripty pro spuštění benchmarku se zvoleným interpretrem a parametry</h2>
+
+<p>Pro spuštění benchmarku použijeme trojici prakticky shodných skriptů, které budou postupně zvětšovat počet čísel (resp.&nbsp;řetězcové podoby těchto čísel) připojovaných k&nbsp;řetězci. Oproti benchmarkům uvedeným minule se vždy počet zvýší na dvojnásobek předchozí hodnoty. Pro malý počet iterací se tedy bude spíše měřit rychlost nastartování interpretru Pythonu (verze 2 či 3) popř.&nbsp;virtuálního stroje Javy a inicializace Jythonu, ovšem u vyšších hodnot již začne převládat rychlost manipulace s&nbsp;řetězci, vliv činnosti správce paměti apod.</p>
+
+
+
+<h3>Skript pro Jython</h3>
+
+<p>Tento skript vyžaduje, aby se v&nbsp;aktuálním adresáři nacházel Java archiv s&nbsp;Jythonem popř.&nbsp;jen symbolický link na tento archiv (<strong>jython-standalone-2.7.0.jar</strong>):</p>
+
+<pre><code>
+repeat_count=1
+limit=10000000
+
+OUTFILE="jython.times"
+PREFIX="jython"
+
+rm -f $OUTFILE
+rm -f ${PREFIX}.txt
+
+while [ $repeat_count -lt $limit ]
+do
+    echo $repeat_count
+    echo -n "$repeat_count " &gt;&gt; $OUTFILE
+    /usr/bin/time --output $OUTFILE --append --format "%e %M" java -jar jython-standalone-2.7.0.jar string_concat.py $repeat_count &gt;&gt; "${PREFIX}.txt"
+    repeat_count=$(( $repeat_count * 2 ))
+done
+</code></pre>
+
+<p>Povšimněte si, jakým způsobem se postupně zvyšuje počet iterací.</p>
+
+
+
+<h3>Skript pro Python 2.x</h3>
+
+<p>Skript určený pro klasický interpret Pythonu 2 vypadá následovně:</p>
+
+<pre><code>
+repeat_count=1
+limit=10000000
+
+OUTFILE="python2.times"
+PREFIX="python2"
+
+rm -f $OUTFILE
+rm -f ${PREFIX}.txt
+
+while [ $repeat_count -lt $limit ]
+do
+    echo $repeat_count
+    echo -n "$repeat_count " &gt;&gt; $OUTFILE
+    /usr/bin/time --output $OUTFILE --append --format "%e %M" python2 -B string_concat.py $repeat_count &gt;&gt; "${PREFIX}.txt"
+    repeat_count=$(( $repeat_count * 2 ))
+done
+</code></pre>
+
+
+
+<h3>Skript pro Python 3.x</h3>
+
+<p>Skript pro interpret Pythonu 3 se prakticky neliší od předchozího skriptu, což je ovšem pochopitelné:</p>
+
+<pre><code>
+repeat_count=1
+limit=10000000
+
+OUTFILE="python3.times"
+PREFIX="python3"
+
+rm -f $OUTFILE
+rm -f ${PREFIX}.txt
+
+while [ $repeat_count -lt $limit ]
+do
+    echo $repeat_count
+    echo -n "$repeat_count " &gt;&gt; $OUTFILE
+    /usr/bin/time --output $OUTFILE --append --format "%e %M" python3 -B string_concat.py $repeat_count &gt;&gt; "${PREFIX}.txt"
+    repeat_count=$(( $repeat_count * 2 ))
+done
+</code></pre>
+
+
+
+<p><a name="k11"></a></p>
+<h2 id="k11">11. Výsledky běhu třetího benchmarku</h2>
+
+<p>Výsledky získané po spuštění třetího benchmarku s&nbsp;využitím Jythonu, interpretru Pythonu 2 a interpretru Pythonu 3 jsou ukázány na grafu a taktéž vypsány v&nbsp;následující tabulce.</p>
+
+<a href="https://mojefedora.cz/wp-content/uploads/2018/09/01.png"><img class="alignnone size-thumbnail wp-image-10552" src="https://mojefedora.cz/wp-content/uploads/2018/09/01-512x254.png" alt="" width="512" height="254" /></a>
+<p><i>Obrázek 3: Výsledky třetího benchmarku (konkatenace řetězců) vynesené do grafu. Časy Jythonu jsou tak vysoké, že časy běhu Pythonu 2 a Pythonu 3 nejsou viditelné.</i></p>
+
+<p>Zde prakticky není důvod pro další zkoumání naměřených hodnot, protože Jython je zde evidentně mnohem pomalejší.</p>
+
+<a href="https://mojefedora.cz/wp-content/uploads/2018/09/02.png"><img class="alignnone size-thumbnail wp-image-10553" src="https://mojefedora.cz/wp-content/uploads/2018/09/02-512x254.png" alt="" width="512" height="254" /></a>
+<p><i>Obrázek 4: Výsledky třetího benchmarku bez několika posledních iterací.</i></p>
+
+<p>Všechny časy jsou uvedeny v&nbsp;sekundách a pokud je namísto času zapsán znak &times;, znamená to pád benchmarku vysvětlený níže:</p>
+
+<table style="text-align:right">
+<tr><th>#</th><th>iter</th><th>Jython (s)</th><th>Python 2 (s)</th><th>Python 3 (s)</th></tr>
+<tr><td>1</td><td>1</td><td>1.81</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>2</td><td>2</td><td>1.79</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>3</td><td>4</td><td>1.79</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>4</td><td>8</td><td>1.76</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>5</td><td>16</td><td>1.74</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>6</td><td>32</td><td>1.74</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>7</td><td>64</td><td>1.74</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>8</td><td>128</td><td>1.81</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>9</td><td>256</td><td>1.83</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>10</td><td>512</td><td>1.77</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>11</td><td>1024</td><td>1.85</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>12</td><td>2048</td><td>1.78</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>13</td><td>4096</td><td>1.76</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>14</td><td>8192</td><td>1.99</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>15</td><td>16384</td><td>2.11</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>16</td><td>32768</td><td>2.83</td><td>0.01</td><td>0.03</td></tr>
+<tr><td>17</td><td>65536</td><td>5.81</td><td>0.02</td><td>0.04</td></tr>
+<tr><td>18</td><td>131072</td><td>16.96</td><td>0.04</td><td>0.05</td></tr>
+<tr><td>19</td><td>262144</td><td>68.53</td><td>0.06</td><td>0.09</td></tr>
+<tr><td>20</td><td>524288</td><td>326.14</td><td>0.12</td><td>0.16</td></tr>
+<tr><td>21</td><td>1048576</td><td>1546.85</td><td>0.23</td><td>0.31</td></tr>
+<tr><td>22</td><td>2097152</td><td>4644.08</td><td>0.44</td><td>0.62</td></tr>
+<tr><td>23</td><td>4194304</td><td>&times;</td><td>0.86</td><td>1.23</td></tr>
+<tr><td>24</td><td>8388608</td><td>&times;</td><td>1.74</td><td>2.45</td></tr>
+</table>
+
+<p>V&nbsp;tabulce můžeme vidět mnoho zajímavých údajů a trendů. Zejména z&nbsp;porovnání Pythonu 2.x a 3.x vyplývá, že Python 2.x je při práci s&nbsp;řetězci nepatrně rychlejší. Je tomu tak z&nbsp;toho důvodu, že v&nbsp;Pythonu 3.3 a v&nbsp;dalších verzích se s&nbsp;řetězci pracuje odlišně, což je téma, kterému jsem se <a href="https://www.root.cz/clanky/interni-reprezentace-retezcu-v-ruznych-jazycich-od-pocitacoveho-praveku-po-soucasnost/#k16">věnoval na konkurenčním serveru</a>. Zcela odlišné jsou výsledky v&nbsp;případě Jythonu, kde nejprve měříme především rychlost startu JVM, od přibližně 10000 iterací se čas postupně zvyšuje a od určité hranice (cca 200000 iterací) můžeme vidět, že rychlost zpracování klesá a pro největší počet iterací navíc došlo k&nbsp;pádu aplikace kvůli překročení nastaveného limitu alokované paměti pro JVM (!):</p>
+
+<pre>
+Traceback (most recent call last):
+  File "string_concat.py", line 22, in &lt;module&gt;
+    perform_benchmark(repeat_count)
+  File "string_concat.py", line 9, in perform_benchmark
+    for i in range(1, 1 + repeat_count):
+java.lang.OutOfMemoryError: Java heap space
+        at org.python.core.Py.newInteger(Py.java:596)
+        at org.python.core.PyInteger.int___add__(PyInteger.java:312)
+        at org.python.core.PyInteger.__add__(PyInteger.java:299)
+        at org.python.core.PyObject._basic_add(PyObject.java:2133)
+        at org.python.core.PyObject._add(PyObject.java:2119)
+        at org.python.core.__builtin__.range(__builtin__.java:928)
+        at org.python.core.__builtin__.range(__builtin__.java:903)
+        at org.python.core.BuiltinFunctions.__call__(__builtin__.java:125)
+        at org.python.core.PyObject.__call__(PyObject.java:482)
+        at org.python.pycode._pyx0.perform_benchmark$1(string_concat.py:13)
+        at org.python.pycode._pyx0.call_function(string_concat.py)
+        at org.python.core.PyTableCode.call(PyTableCode.java:167)
+        at org.python.core.PyBaseCode.call(PyBaseCode.java:138)
+        at org.python.core.PyFunction.__call__(PyFunction.java:413)
+        at org.python.pycode._pyx0.f$0(string_concat.py:22)
+        at org.python.pycode._pyx0.call_function(string_concat.py)
+        at org.python.core.PyTableCode.call(PyTableCode.java:167)
+        at org.python.core.PyCode.call(PyCode.java:18)
+        at org.python.core.Py.runCode(Py.java:1386)
+        at org.python.util.PythonInterpreter.execfile(PythonInterpreter.java:296)
+        at org.python.util.jython.run(jython.java:362)
+        at org.python.util.jython.main(jython.java:142)
+
+java.lang.OutOfMemoryError: java.lang.OutOfMemoryError: Java heap space
+</pre>
+
+
+
+<p><a name="k12"></a></p>
+<h2 id="k12">12. &bdquo;Skryté&ldquo; vytváření objektů v&nbsp;benchmarku s&nbsp;řetězci</h2>
+
+<p>Můžeme se ptát, v&nbsp;čem vlastně spočívá pomalost Jythonu při opakovaných konkatenacích řetězců? Na prvním místě si musíme ozřejmit uvědomit, jakým způsobem s&nbsp;řetězci pracuje virtuální stroj Javy, tj.&nbsp;JVM. Bajtkód příslušné funkce po jejím překladu do bajtkódu vypadá přibližně takto:</p>
+
+<pre>
+   0:   ldc             #2; //String
+   2:   astore_0
+   3:   iconst_0
+   4:   istore_1
+   5:   iload_1
+   6:   sipush  10000
+   9:   if_icmpge 42        // na bajtu s indexem 42 je konec smyčky
+*  12:  new             #3; //class java/lang/StringBuilder
+*  15:  dup
+*  16:  invokespecial   #4; //Method java/lang/StringBuilder."(init)":()V
+*  19:  aload_0
+*  20:  invokevirtual   #5; //Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+*  23:  iload_1
+*  24:  invokevirtual   #6; //Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+*  27:  ldc             #7; //String
+*  29:  invokevirtual   #5; //Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+*  32:  invokevirtual   #8; //Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+*  35:  astore_0
+   36:  iinc    1, 1        // zvýšení hodnoty počitadla
+   39:  goto    5           // skok zpět na začátek smyčky
+   42:  aload_0
+   43:  areturn
+</pre>
+
+<p>Vzhledem k&nbsp;tomu, že výše uvedený bajtkód je pro velkou část programátorů v&nbsp;Javě či Pythonu poměrně nepřehledný a špatně čitelný, je níže pro ilustraci vypsán programový kód, který je do co největší míry ekvivalentní s&nbsp;instrukcemi, jež se vyskytují ve vygenerovaném bajtkódu. Povšimněte si, že se v&nbsp;tomto zdrojovém kódu instance třídy <strong>StringBuilder</strong> ihned po svém vytvoření (konstrukci) naplní původním řetězcem, ke kterému se mají připisovat další znaky. Posléze se do tohoto objektu přidá textová reprezentace celého čísla následovaná řetězcem obsahujícím mezeru. Poslední operací, která se s&nbsp;instancí třídy <strong>StringBuffer</strong> provádí, je převod jejího atributu zpět na řetězec:</p>
+
+<pre><code>
+String str = "";
+for (int i = 0; i &lt; LOOP_COUNT; i++)
+{
+    StringBuilder tmp = new StringBuilder();
+    tmp.append(str);
+    tmp.append(i);
+    tmp.append(" ");
+    str = tmp.toString();
+}
+return str;
+</code></pre>
+
+<p>A právě neustálé vytváření objektů uvnitř programové smyčky a opakované připojování již vytvořeného řetězce do <strong>StringBuilderu</strong> je velmi náročné jak na paměť, tak i na výkonnost automatického správce paměti. V&nbsp;interpretrech Pythonu je tato činnost evidentně vyřešena mnohem efektivněji</p>
+
+
+
+<p><a name="k13"></a></p>
+<h2 id="k13">13. Čtvrtý benchmark &ndash; Eratosthenovo síto</h2>
+
+<p>Čtvrtý a současně i poslední benchmark, s&nbsp;nímž se seznámíme, již nebude zaměřen ani na numerické výpočty ani na masivní práci s&nbsp;řetězci. Bude v&nbsp;něm implementován algoritmus pro nalezení všech prvočísel ve specifikovaném rozsahu. Konkrétně pro zjištění prvočísel použijeme tzv.&nbsp;Eratosthenovo síto, které slouží na zjištění všech hodnot, které NEjsou prvočísly. Zbylé hodnoty pochopitelně prvočísly budou. Tento algoritmus je možné implementovat mnoha různými způsoby. V&nbsp;našem konkrétním benchmarku s&nbsp;výhodou využijeme některé vlastnosti Pythonu: práci s&nbsp;množinami (tam se uloží hodnoty, které NEjsou prvočísly), použití generátorů (<strong>yield</strong>) a taktéž funkce <strong>range</strong>, která nám prakticky zadarmo vygeneruje všechny celočíselné násobky určité hodnoty. Zdrojový kód benchmarku vypadá následovně:</p>
+
+<pre><code>
+#!/usr/bin/env python
+# vim: set fileencoding=utf-8
+
+from sys import argv
+
+
+def sieve(n):
+    multiples = set()
+    for i in range(2, n+1):
+        if i not in multiples:
+            yield i
+            multiples.update(range(i*i, n+1, i))
+
+
+if __name__ == "__main__":
+    if len(argv) &lt; 2:
+        print("usage: python sieve_algorithm repeat_count")
+        exit(1)
+
+    max_value = int(argv[1])
+    primes = list(sieve(max_value))
+    print(len(primes))
+</code></pre>
+
+
+
+<p><a name="k14"></a></p>
+<h2 id="k14">14. Skripty pro spuštění benchmarku se zvoleným interpretrem a parametry</h2>
+
+<p>Pro spuštění posledního benchmarku opět použijeme trojici prakticky shodných skriptů, které budou postupně zvětšovat počet generovaných prvočísel. Oproti benchmarkům uvedeným minule se vždy počet zvýší na dvojnásobek předchozí hodnoty. Pro malý počet iterací se tedy bude spíše měřit rychlost nastartování interpretru Pythonu (verze 2 či 3) popř.&nbsp;virtuálního stroje Javy a inicializace Jythonu, ovšem u vyšších hodnot již začne převládat rychlost nebo pomalost vlastního algoritmu.</p>
+
+
+
+<h3>Skript pro Jython</h3>
+
+<pre><code>
+max_value=1
+limit=100000000
+
+OUTFILE="jython.times"
+PREFIX="jython"
+
+rm -f $OUTFILE
+rm -f ${PREFIX}.txt
+
+while [ $max_value -lt $limit ]
+do
+    echo $max_value
+    echo -n "$max_value " &gt;&gt; $OUTFILE
+    /usr/bin/time --output $OUTFILE --append --format "%e %M" java -jar jython-standalone-2.7.0.jar sieve_algorithm.py $max_value &gt;&gt; "${PREFIX}.txt"
+    max_value=$(( $max_value * 2 ))
+done
+</code></pre>
+
+
+
+<h3>Skript pro Python 2.x</h3>
+
+<pre><code>
+max_value=1
+limit=100000000
+
+OUTFILE="python2.times"
+PREFIX="python2"
+
+rm -f $OUTFILE
+rm -f ${PREFIX}.txt
+
+while [ $max_value -lt $limit ]
+do
+    echo $max_value
+    echo -n "$max_value " &gt;&gt; $OUTFILE
+    /usr/bin/time --output $OUTFILE --append --format "%e %M" python2 -B sieve_algorithm.py $max_value &gt;&gt; "${PREFIX}.txt"
+    max_value=$(( $max_value * 2 ))
+done
+</code></pre>
+
+
+
+<h3>Skript pro Python 3.x</h3>
+
+<pre><code>
+max_value=1
+limit=100000000
+
+OUTFILE="python3.times"
+PREFIX="python3"
+
+rm -f $OUTFILE
+rm -f ${PREFIX}.txt
+
+while [ $max_value -lt $limit ]
+do
+    echo $max_value
+    echo -n "$max_value " &gt;&gt; $OUTFILE
+    /usr/bin/time --output $OUTFILE --append --format "%e %M" python3 -B sieve_algorithm.py $max_value &gt;&gt; "${PREFIX}.txt"
+    max_value=$(( $max_value * 2 ))
+done
+</code></pre>
+
+
+
+<p><a name="k15"></a></p>
+<h2 id="k15">15. Výsledky běhu čtvrtého benchmarku</h2>
+
+<p>Podívejme se nyní na výsledky benchmarku, nejprve v&nbsp;grafové podobě. Z&nbsp;výsledků je patrné, že benchmark spuštěný v&nbsp;Jythonu je opět nejpomalejší a navíc se se zvyšujícím se nejvyšším prvočíslem dále zpomaluje (minimálně v&nbsp;porovnání s&nbsp;implementací Pythonu 2 i 3). Zajímavé je, že až na pomalejší start je Python 3 nepatrně rychlejší, než Python 2:</p>
+
+<a href="https://mojefedora.cz/wp-content/uploads/2018/09/03.png"><img class="alignnone size-thumbnail wp-image-10554" src="https://mojefedora.cz/wp-content/uploads/2018/09/03-509x254.png" alt="" width="509" height="254" /></a>
+<p><i>Obrázek 4: Výsledky čtvrtého benchmarku (konkatenace řetězců) vynesené do grafu.</i></p>
+
+<p>Stejné výsledky, tentokrát zapsané do tabulky:</p>
+
+<table style="text-align:right">
+<tr><th>#</th><th>iter</th><th>Jython (s)</th><th>Python 2 (s)</th><th>Python 3 (s)</th></tr>
+<tr><td> 1</td><td>1</td><td>2.70</td><td>0.01</td><td>0.02</td></tr>
+<tr><td> 2</td><td>2</td><td>2.71</td><td>0.01</td><td>0.02</td></tr>
+<tr><td> 3</td><td>4</td><td>2.60</td><td>0.01</td><td>0.02</td></tr>
+<tr><td> 4</td><td>8</td><td>2.58</td><td>0.01</td><td>0.02</td></tr>
+<tr><td> 5</td><td>16</td><td>2.53</td><td>0.01</td><td>0.02</td></tr>
+<tr><td> 6</td><td>32</td><td>2.04</td><td>0.01</td><td>0.02</td></tr>
+<tr><td> 7</td><td>64</td><td>1.89</td><td>0.01</td><td>0.02</td></tr>
+<tr><td> 8</td><td>128</td><td>1.83</td><td>0.01</td><td>0.02</td></tr>
+<tr><td> 9</td><td>256</td><td>1.93</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>10</td><td>512</td><td>2.04</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>11</td><td>1024</td><td>1.92</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>12</td><td>2048</td><td>1.82</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>13</td><td>4096</td><td>1.80</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>14</td><td>8192</td><td>1.87</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>15</td><td>16384</td><td>1.83</td><td>0.01</td><td>0.02</td></tr>
+<tr><td>16</td><td>32768</td><td>1.85</td><td>0.01</td><td>0.03</td></tr>
+<tr><td>17</td><td>65536</td><td>1.82</td><td>0.02</td><td>0.03</td></tr>
+<tr><td>18</td><td>131072</td><td>1.93</td><td>0.04</td><td>0.05</td></tr>
+<tr><td>19</td><td>262144</td><td>2.04</td><td>0.08</td><td>0.08</td></tr>
+<tr><td>20</td><td>524288</td><td>2.29</td><td>0.18</td><td>0.17</td></tr>
+<tr><td>21</td><td>1048576</td><td>2.99</td><td>0.41</td><td>0.35</td></tr>
+<tr><td>22</td><td>2097152</td><td>3.95</td><td>0.88</td><td>0.73</td></tr>
+<tr><td>23</td><td>4194304</td><td>5.64</td><td>1.86</td><td>1.44</td></tr>
+<tr><td>24</td><td>8388608</td><td>12.99</td><td>3.96</td><td>2.88</td></tr>
+<tr><td>25</td><td>16777216</td><td>26.61</td><td>8.20</td><td>5.95</td></tr>
+<tr><td>26</td><td>33554432</td><td>123.79</td><td>16.80</td><td>12.29</td></tr>
+<tr><td>27</td><td>67108864</td><td>273.94</td><td>34.88</td><td>25.75</td></tr>
+</table>
+
+
+
+<p><a name="k16"></a></p>
+<h2 id="k16">16. Pád benchmarku v&nbsp;případě Jythonu</h2>
+
+<p>Jen na okraj &ndash; podobně, jako se to stalo v&nbsp;případě benchmarku pro konkatenaci řetězců, můžeme podobným způsobem &bdquo;narazit&ldquo; i u čtvrtého benchmarku, v&nbsp;němž poměrně brzy dojde k&nbsp;pádu aplikace kvůli problémům s&nbsp;alokací paměti. Opět to souvisí s&nbsp;odlišným způsobem interní reprezentace objektů v&nbsp;JVM a v&nbsp;interpretrech Pythonu (konkrétně CPythonu):</p>
+
+<pre>
+Traceback (most recent call last):
+  File "sieve_algorithm.py", line 21, in <module>
+    primes = list(sieve(max_value))
+  File "sieve_algorithm.py", line 12, in sieve
+    multiples.update(range(i*i, n+1, i))
+java.lang.OutOfMemoryError: GC overhead limit exceeded
+        at java.util.concurrent.ConcurrentHashMap.putVal(ConcurrentHashMap.java:1019)
+        at java.util.concurrent.ConcurrentHashMap.put(ConcurrentHashMap.java:1006)
+        at java.util.Collections$SetFromMap.add(Collections.java:5461)
+        at org.python.core.BaseSet._update(BaseSet.java:47)
+        at org.python.core.BaseSet._update(BaseSet.java:28)
+        at org.python.core.PySet.set_update(PySet.java:297)
+        at org.python.core.PySet$set_update_exposer.__call__(Unknown Source)
+        at org.python.core.PyObject.__call__(PyObject.java:461)
+        at org.python.core.PyObject.__call__(PyObject.java:465)
+        at org.python.pycode._pyx0.sieve$1(sieve_algorithm.py:9)
+        at org.python.pycode._pyx0.call_function(sieve_algorithm.py)
+        at org.python.core.PyTableCode.call(PyTableCode.java:167)
+        at org.python.core.PyGenerator.__iternext__(PyGenerator.java:156)
+        at org.python.core.PyGenerator.__iternext__(PyGenerator.java:138)
+        at org.python.core.WrappedIterIterator.hasNext(WrappedIterIterator.java:23)
+        at org.python.core.PyList.list___init__(PyList.java:138)
+        at org.python.core.PyList$exposed___new__.createOfType(Unknown Source)
+        at org.python.core.PyOverridableNew.new_impl(PyOverridableNew.java:12)
+        at org.python.core.PyType.invokeNew(PyType.java:494)
+        at org.python.core.PyType.type___call__(PyType.java:1706)
+        at org.python.core.PyType.__call__(PyType.java:1696)
+        at org.python.core.PyObject.__call__(PyObject.java:461)
+        at org.python.core.PyObject.__call__(PyObject.java:465)
+        at org.python.pycode._pyx0.f$0(sieve_algorithm.py:22)
+        at org.python.pycode._pyx0.call_function(sieve_algorithm.py)
+        at org.python.core.PyTableCode.call(PyTableCode.java:167)
+        at org.python.core.PyCode.call(PyCode.java:18)
+        at org.python.core.Py.runCode(Py.java:1386)
+        at org.python.util.PythonInterpreter.execfile(PythonInterpreter.java:296)
+        at org.python.util.jython.run(jython.java:362)
+        at org.python.util.jython.main(jython.java:142)
+
+java.lang.OutOfMemoryError: java.lang.OutOfMemoryError: GC overhead limit exceeded
+</pre>
+
+
+
+<p><a name="k17"></a></p>
+<h2 id="k17">17. Jednoduchá GUI aplikace naprogramovaná v&nbsp;Jythonu</h2>
+
+<p>V&nbsp;samotném závěru dnešního článku si ukážeme, jak jednoduché je v&nbsp;Jythonu vytvořit aplikaci s&nbsp;grafickým uživatelským rozhraním založeným na knihovně Swing. Oproti kódu naprogramovanému v&nbsp;Javě je skript napsaný v&nbsp;Jythonu velmi krátký, což do značné míry souvisí s&nbsp;dynamickým typovým systémem a taktéž s&nbsp;tím, že v&nbsp;Jythonu jsou funkce plnohodnotným datovým typem, na rozdíl od Javy. To mj.&nbsp;znamená, že je možné běžnou funkci použít jako handler nějaké události, což by se v&nbsp;Javě muselo řešit s&nbsp;využitím anonymní třídy:</p>
+
+<pre><code>
+button = JButton('Test', actionPerformed=on_button_clicked)
+</code></pre>
+
+<pre><code>
+from javax.swing import JButton
+from javax.swing import JFrame
+
+
+frame = JFrame("Simple GUI",
+               defaultCloseOperation=JFrame.EXIT_ON_CLOSE,
+               size=(320, 240))
+
+
+def on_button_clicked(event):
+    print 'Button clicked!'
+
+
+button = JButton('Test', actionPerformed=on_button_clicked)
+frame.add(button)
+frame.visible = True
+</code></pre>
+
+
+
+<p><a name="k18"></a></p>
+<h2 id="k18">18. Nepatrně složitější příklad &ndash; dvě tlačítka na GUI</h2>
+
+<p>Ve druhém podobně laděném příkladu je ukázáno, že handlerem události může být i anonymní funkce, která se v&nbsp;Pythonu vytváří s&nbsp;využitím klíčového slova <strong>lambda</strong>:</p>
+
+<pre><code>
+import sys
+from javax.swing import JButton
+from javax.swing import JFrame
+from java.awt import Component, GridLayout
+
+frame = JFrame("Simple GUI",
+               defaultCloseOperation=JFrame.EXIT_ON_CLOSE,
+               size=(320, 240))
+
+contentPane = frame.getContentPane()
+contentPane.setLayout(GridLayout(2, 1))
+
+
+def on_button_clicked(event):
+    print 'Button clicked!'
+
+
+button1 = JButton('Test', actionPerformed=on_button_clicked)
+button2 = JButton('Quit', actionPerformed=lambda event:sys.exit())
+
+frame.add(button1)
+frame.add(button2)
+frame.visible = True
+</code></pre>
+
+<p>Složitější ukázky podobným způsobem vytvořených aplikací si ukážeme příště.</p>
+
+
+
+<p><a name="k19"></a></p>
+<h2 id="k19">19. Repositář s&nbsp;demonstračními příklady</h2>
+
+<p>Všechny demonstrační příklady, které jsme si v&nbsp;dnešním článku ukázali, jsou uloženy v&nbsp;repositáři, který naleznete na adrese <a href="https://github.com/tisnik/jython-examples">https://github.com/tisnik/jython-examples</a>. Následují odkazy na jednotlivé příklady (pro jejich spuštění je nutné mít v&nbsp;aktuálním adresáři symbolický link na Java archiv <strong>jython-standalone-2.7.0.jar</strong>):</p>
+
+<table>
+<tr><th>Zdrojový kód/skript</th><th>Adresa</th></tr>
+<tr><td>array_list_is_empty.py</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/arraylist_is_empty/array_list_is_empty.py">https://github.com/tisnik/jython-examples/blob/master/arraylist_is_empty/array_is_empty.py</a></td></tr>
+<tr><td>button_class.py</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/attribute_lookup/button_class.py">https://github.com/tisnik/jython-examples/blob/master/attribute_lookup/button_class.py</a></td></tr>
+<tr><td>color_class.py</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/attribute_lookup/color_class.py">https://github.com/tisnik/jython-examples/blob/master/attribute_lookup/color_class.py</a></td></tr>
+<tr><td>string_buffer_class.py</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/attribute_lookup/string_buffer_class.py">https://github.com/tisnik/jython-examples/blob/master/attribute_lookup/string_buffer_class.py</a></td></tr>
+<tr><td>color_getters.py</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/">https://github.com/tisnik/jython-examples/blob/master/</a></td></tr>
+<tr><td>string_buffer_length.py</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/">https://github.com/tisnik/jython-examples/blob/master/</a></td></tr>
+<tr><td>simple_gui.py</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/">https://github.com/tisnik/jython-examples/blob/master/</a></td></tr>
+<tr><td>two_buttons.py</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/">https://github.com/tisnik/jython-examples/blob/master/</a></td></tr>
+</table>
+
+<p>Dnes popsané benchmarky (v&nbsp;pořadí třetí a čtvrtý) se skládají z&nbsp;většího množství souborů a proto jsou vypsány v&nbsp;samostatných tabulkách:</p>
+
+<h3>Třetí benchmark</h3>
+
+<table>
+<tr><th>Zdrojový kód/skript</th><th>Adresa</th></tr>
+<tr><td>string_concat.py</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/benchmark_string_concat/string_concat.py">https://github.com/tisnik/jython-examples/blob/master/benchmark_string_concat/mandelbrot_complex.py</a></td></tr>
+<tr><td>test_jython.sh</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/benchmark_string_concat/test_jython.sh">https://github.com/tisnik/jython-examples/blob/master/benchmark_string_concat/test_jython.sh</a></td></tr>
+<tr><td>test_python2.sh</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/benchmark_string_concat/test_python2.sh">https://github.com/tisnik/jython-examples/blob/master/benchmark_string_concat/test_python2.sh</a></td></tr>
+<tr><td>test_python3.sh</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/benchmark_string_concat/test_python3.sh">https://github.com/tisnik/jython-examples/blob/master/benchmark_string_concat/test_python3.sh</a></td></tr>
+<tr><td>clean.sh</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/benchmark_string_concat/clean.sh">https://github.com/tisnik/jython-examples/blob/master/benchmark_string_concat/clean.sh</a></td></tr>
+</table>
+
+<h3>Čtvrtý benchmark</h3>
+
+<table>
+<tr><th>Zdrojový kód/skript</th><th>Adresa</th></tr>
+<tr><td>sieve_algorithm.py</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/benchmark_sieve_algorithm/sieve_algorithm.py">https://github.com/tisnik/jython-examples/blob/master/benchmark_sieve_algorithm/mandelbrot_complex.py</a></td></tr>
+<tr><td>test_jython.sh</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/benchmark_sieve_algorithm/test_jython.sh">https://github.com/tisnik/jython-examples/blob/master/benchmark_sieve_algorithm/test_jython.sh</a></td></tr>
+<tr><td>test_python2.sh</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/benchmark_sieve_algorithm/test_python2.sh">https://github.com/tisnik/jython-examples/blob/master/benchmark_sieve_algorithm/test_python2.sh</a></td></tr>
+<tr><td>test_python3.sh</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/benchmark_sieve_algorithm/test_python3.sh">https://github.com/tisnik/jython-examples/blob/master/benchmark_sieve_algorithm/test_python3.sh</a></td></tr>
+<tr><td>clean.sh</td><td><a href="https://github.com/tisnik/jython-examples/blob/master/benchmark_sieve_algorithm/clean.sh">https://github.com/tisnik/jython-examples/blob/master/benchmark_sieve_algorithm/clean.sh</a></td></tr>
+</table>
+
+
+
+<p><a name="k20"></a></p>
+<h2 id="k20">20. Odkazy na Internetu</h2>
+
+<ol>
+
+<li>Stránka projektu Jython<br />
+<a href="http://www.jython.org/">http://www.jython.org/</a>
+</li>
+
+<li>Jython (Wikipedia)<br />
+<a href="https://en.wikipedia.org/wiki/Jython">https://en.wikipedia.org/wiki/Jython</a>
+</li>
+
+<li>Scripting for the Java Platform (Wikipedia)<br />
+<a href="https://en.wikipedia.org/wiki/Scripting_for_the_Java_Platform">https://en.wikipedia.org/wiki/Scripting_for_the_Java_Platform</a>
+</li>
+
+<li>JSR 223: Scripting for the Java<sup>TM</sup> Platform<br />
+<a href="https://jcp.org/en/jsr/detail?id=223">https://jcp.org/en/jsr/detail?id=223</a>
+</li>
+
+<li>List of JVM languages<br />
+<a href="https://en.wikipedia.org/wiki/List_of_JVM_languages">https://en.wikipedia.org/wiki/List_of_JVM_languages</a>
+</li>
+
+<li>Stránka programovacího jazyka Java<br />
+<a href="https://www.oracle.com/java/index.html">https://www.oracle.com/java/index.html</a>
+</li>
+
+<li>Stránka programovacího jazyka Clojure<br />
+<a href="http://clojure.org">http://clojure.org</a>
+</li>
+
+<li>Stránka programovacího jazyka Groovy<br />
+<a href="http://groovy-lang.org/">http://groovy-lang.org/</a>
+</li>
+
+<li>Stránka programovacího jazyka JRuby<br />
+<a href="http://jruby.org/">http://jruby.org/</a>
+</li>
+
+<li>Stránka programovacího jazyka Kotlin<br />
+<a href="http://kotlinlang.org/">http://kotlinlang.org/</a>
+</li>
+
+<li>Stránka programovacího jazyka Scala<br />
+<a href="https://www.scala-lang.org/">https://www.scala-lang.org/</a>
+</li>
+
+<li>Projekt Rhino<br />
+<a href="https://developer.mozilla.org/en-US/docs/Mozilla/Projects/Rhino">https://developer.mozilla.org/en-US/docs/Mozilla/Projects/Rhino</a>
+</li>
+
+<li>Clojure (Wikipedia)<br />
+<a href="https://en.wikipedia.org/wiki/Clojure">https://en.wikipedia.org/wiki/Clojure</a>
+</li>
+
+<li>Groovy (Wikipedia)<br />
+<a href="https://en.wikipedia.org/wiki/Groovy_%28programming_language%29">https://en.wikipedia.org/wiki/Groovy_%28programming_language%29</a>
+</li>
+
+<li>JRuby (Wikipedia)<br />
+<a href="https://en.wikipedia.org/wiki/JRuby">https://en.wikipedia.org/wiki/JRuby</a>
+</li>
+
+<li>Kotlin (Wikipedia)<br />
+<a href="https://en.wikipedia.org/wiki/Kotlin_%28programming_language%29">https://en.wikipedia.org/wiki/Kotlin_%28programming_language%29</a>
+</li>
+
+<li>Scala (Wikipedia)<br />
+<a href="https://en.wikipedia.org/wiki/Scala_%28programming_language%29">https://en.wikipedia.org/wiki/Scala_%28programming_language%29</a>
+</li>
+
+<li>Python Interpreters Benchmarks<br />
+<a href="https://pybenchmarks.org/u64q/jython.php">https://pybenchmarks.org/u64q/jython.php</a>
+</li>
+
+<li>Apache Kafka Producer Benchmarks - Java vs. Jython vs. Python<br />
+<a href="http://mrafayaleem.com/2016/03/31/apache-kafka-producer-benchmarks/">http://mrafayaleem.com/2016/03/31/apache-kafka-producer-benchmarks/</a>
+</li>
+
+<li>What is Jython and is it useful at all? (Stack Overflow)<br />
+<a href="https://stackoverflow.com/questions/1859865/what-is-jython-and-is-it-useful-at-all">https://stackoverflow.com/questions/1859865/what-is-jython-and-is-it-useful-at-all</a>
+</li>
+
+<li>Sieve of Eratosthenes (Wikipedia)<br />
+<a href="https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes">https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes</a>
+</li>
+
+<li>Sieve of Eratosthenes (Geeks for Geeks)<br />
+<a href="https://www.geeksforgeeks.org/sieve-of-eratosthenes/">https://www.geeksforgeeks.org/sieve-of-eratosthenes/</a>
+</li>
+
+<li>Sieve of Eratosthenovo (Rosetta code)<br />
+<a href="http://rosettacode.org/wiki/Sieve_of_Eratosthenes">http://rosettacode.org/wiki/Sieve_of_Eratosthenes</a>
+</li>
+
+<li>Monitorování procesů a správa paměti v JDK6 a JDK7 (1)<br />
+<a href="https://www.root.cz/clanky/monitorovani-procesu-a-sprava-pameti-v-jdk6-a-jdk7-1/">https://www.root.cz/clanky/monitorovani-procesu-a-sprava-pameti-v-jdk6-a-jdk7-1/</a>
+</li>
+
+<li>Monitorování procesů a správa paměti v JDK6 a JDK7 (2)<br />
+<a href="https://www.root.cz/clanky/monitorovani-procesu-a-sprava-pameti-v-jdk6-a-jdk7-2/">https://www.root.cz/clanky/monitorovani-procesu-a-sprava-pameti-v-jdk6-a-jdk7-2/</a>
+</li>
+
+</ol>
+
+
+
+<p></p><p></p>
+<p><small>Autor: <a href="http://www.fit.vutbr.cz/~tisnovpa">Pavel Tišnovský</a> &nbsp; 2018</small></p>
+</body>
+</html>
+
